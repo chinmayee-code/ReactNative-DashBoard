@@ -24,45 +24,46 @@ import {days, months} from '~/constant/day-month';
 const DashBoard = () => {
   const [selectedOption, setSelectedOption] = useState('week');
 
-  const Dashboard_Card = [
-    {
-      id: '1',
-      value: '6790',
-      icon: (
-        <AppIcon IoniconsName="people-outline" size={24} color={'#000080'} />
-      ),
-      title: 'Total Visitors',
-      icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
-      rate: '16.23%',
-    },
-    {
-      id: '2',
-      value: '2345',
-      icon: <AppIcon EntypoName="line-graph" size={18} color={'#000080'} />,
-      title: 'Total Sales',
-      icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
-      rate: '31.4%',
-    },
-    {
-      id: '3',
-      value: '6778',
-      icon: <AppIcon MaterialIconsName="money" size={18} color={'#000080'} />,
-      title: 'Transactions',
-      icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
-      rate: '10%',
-    },
-    {
-      id: '4',
-      value: '9876',
+  // const Dashboard_Card = [
+  //   {
+  //     id: '1',
+  //     value: '6790',
+  //     icon: (
+  //       <AppIcon IoniconsName="people-outline" size={24} color={'#000080'} />
+  //     ),
+  //     title: 'Total Visitors',
+  //     icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
+  //     rate: '16.23%',
+  //   },
+  //   {
+  //     id: '2',
+  //     value: '2345',
+  //     icon: <AppIcon EntypoName="line-graph" size={18} color={'#000080'} />,
+  //     title: 'Total Sales',
+  //     icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
+  //     rate: '31.4%',
+  //   },
+  //   {
+  //     id: '3',
+  //     value: '6778',
+  //     icon: <AppIcon MaterialIconsName="money" size={18} color={'#000080'} />,
+  //     title: 'Transactions',
+  //     icon2: <AppIcon AntDesignName="arrowup" size={16} color={'#008000'} />,
+  //     rate: '10%',
+  //   },
+  //   {
+  //     id: '4',
+  //     value: '9876',
 
-      icon: <AppIcon FontistoName="smiling" size={18} color={'#000080'} />,
-      title: ' Total Review',
-      icon2: <AppIcon AntDesignName="arrowdown" size={16} color={'#FF0000'} />,
-      rate: '-1.3%',
-    },
-  ];
+  //     icon: <AppIcon FontistoName="smiling" size={18} color={'#000080'} />,
+  //     title: ' Total Review',
+  //     icon2: <AppIcon AntDesignName="arrowdown" size={16} color={'#FF0000'} />,
+  //     rate: '-1.3%',
+  //   },
+  // ];
 
   const [data, setData] = useState<any[]>([]);
+  const [dashBoardData, setDashBoardData] = useState<any[]>([]);
 
   const filteredData = useMemo(() => {
     return data.filter(item => item.type === selectedOption);
@@ -109,8 +110,35 @@ const DashBoard = () => {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [selectedOption]),
+      fetchDashboardData();
+    }, []),
   );
+
+  // useEffect(() => {
+  //   fetchData();
+  // }, [selectedOption]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const res = await axios.get(
+        `http://192.168.29.233:8000/api/v1/dashboard/dashboard-data`, //Here i have used my laptops ip address in place of localhost
+
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer token`,
+          },
+        },
+      );
+      // console.log(res.data);
+
+      if (res.status === 200) {
+        setDashBoardData(res.data?.data);
+      }
+    } catch (e) {
+      console.error('error', e);
+    }
+  };
   return (
     <Box safeAreaTop flex={1} bgColor={'white'}>
       <Row
@@ -152,7 +180,7 @@ const DashBoard = () => {
           pb: 20,
         }}>
         <Row flexWrap={'wrap'} m={2}>
-          {Dashboard_Card?.map((item, index) => (
+          {dashBoardData?.map((item, index) => (
             <Pressable
               key={item?.id}
               bgColor={'white'}
@@ -172,7 +200,44 @@ const DashBoard = () => {
                     shadow={2}
                     bgColor={'blue.200'}
                     borderRadius={10}>
-                    {item?.icon}
+                    {/* <AppIcon
+                      size={24}
+                      color={'#000080'}
+                      name={
+                        item.title === 'Total Visitors'
+                          ? 'people-outline'
+                          : item.title === 'Total Sales'
+                          ? 'line-graph'
+                          : item.title === 'Transactions'
+                          ? 'money'
+                          : 'smiling' // Default icon
+                      }
+                    /> */}
+                    {item.title === 'Total Visitors' ? (
+                      <AppIcon
+                        IoniconsName="people-outline"
+                        size={24}
+                        color={'#000080'}
+                      />
+                    ) : item.title === 'Total Sales' ? (
+                      <AppIcon
+                        EntypoName="line-graph"
+                        size={18}
+                        color={'#000080'}
+                      />
+                    ) : item.title === 'Transactions' ? (
+                      <AppIcon
+                        MaterialIconsName="money"
+                        size={18}
+                        color={'#000080'}
+                      />
+                    ) : (
+                      <AppIcon
+                        FontistoName="smiling"
+                        size={18}
+                        color={'#000080'}
+                      />
+                    )}
                   </Box>
 
                   <Box
@@ -208,11 +273,23 @@ const DashBoard = () => {
                   <Box>
                     <Text
                       textAlign={'left'}
-                      color={index < 3 ? '#008000' : '#FF0000'}
+                      color={parseFloat(item.rate) > 0 ? '#008000' : '#FF0000'}
                       fontSize={'sm'}
                       fontWeight={'bold'}
                       fontFamily={FONTS[400].normal}>
-                      {item.icon2}
+                      {parseFloat(item.rate) > 0 ? (
+                        <AppIcon
+                          AntDesignName="arrowup"
+                          size={16}
+                          color={'#008000'}
+                        />
+                      ) : (
+                        <AppIcon
+                          AntDesignName="arrowdown"
+                          size={16}
+                          color={'#FF0000'}
+                        />
+                      )}
                       {item.rate}
                     </Text>
                   </Box>
