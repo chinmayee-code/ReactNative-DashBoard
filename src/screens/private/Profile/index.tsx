@@ -1,5 +1,6 @@
+import {gql, useQuery} from '@apollo/client';
 import {useNavigation} from '@react-navigation/native';
-import {Box, ScrollView} from 'native-base';
+import {Box, FlatList, ScrollView, Text} from 'native-base';
 import React from 'react';
 import {Content, List} from '~/components/core';
 import {IconProps} from '~/components/core/AppIcon';
@@ -91,31 +92,69 @@ export default function Profile() {
       leftIcon: {FeatherName: 'trash'},
     },
   ];
+  const GET_DEVICES = gql`
+    query getAllDevices(
+      $filter: [FilterDevice]
+      $search: String
+      $sortPage: SortAndPageDevices
+    ) {
+      getAllDevices(filter: $filter, search: $search, sortPage: $sortPage) {
+        content {
+          slNo
+          model
+          name
+          zone1
+          zone2
+          latitude
+          longitude
+          macAddress
+          type
+        }
+        totalPages
+        totalElements
+        number
+        size
+        numberOfElements
+        first
+        last
+        empty
+      }
+    }
+  `;
+
+  const {loading, data: queryData} = useQuery(GET_DEVICES, {
+    fetchPolicy: 'network-only',
+  });
+  console.log('===>>', queryData?.getAllDevices?.content[0]);
+  const deviceData = queryData?.getAllDevices?.content ?? [];
+
+  // Render a single item
+  const renderItem = ({item}: any) => {
+    return (
+      <Box
+        padding={4}
+        borderBottomWidth={1}
+        borderColor="coolGray.200"
+        key={item.slNo}>
+        <Text bold>{item.name}</Text>
+        <Text>Model: {item.model}</Text>
+        <Text>Type: {item.type}</Text>
+        <Text>MAC Address: {item.macAddress}</Text>
+        <Text>Zone 1: {item.zone1}</Text>
+        <Text>Zone 2: {item.zone2}</Text>
+        <Text>Latitude: {item.latitude}</Text>
+        <Text>Longitude: {item.longitude}</Text>
+      </Box>
+    );
+  };
+
   return (
-    // <Box safeAreaTop>
-    //   <ScrollView _contentContainerStyle={{bg: 'white', minH: 'full', p: 3}}>
-    //     {listData.map((item, index) => (
-    //       <React.Fragment key={index}>
-    //         {item.isHeading ? (
-    //           <Content size="md" mt={3} mb={2} weight="bold">
-    //             {item.title}
-    //           </Content>
-    //         ) : (
-    //           <List
-    //             title={item.title}
-    //             leftIcon={item.leftIcon}
-    //             subtitle={item.subtitle}
-    //             avatar={item.avatar}
-    //             hasSharedElement={Boolean(item?.avatar)}
-    //             onPress={() => item?.onPress?.()}
-    //           />
-    //         )}
-    //       </React.Fragment>
-    //     ))}
-    //   </ScrollView>
-    // </Box>
-    <Box>
-      <Content>hii</Content>
+    <Box flex={1}>
+      <FlatList
+        data={deviceData}
+        keyExtractor={(item: any) => item.slNo.toString()} // Use a unique key, here slNo
+        renderItem={renderItem}
+      />
     </Box>
   );
 }

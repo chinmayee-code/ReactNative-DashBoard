@@ -19,6 +19,7 @@ module.exports = {
           '~/screens': './src/screens',
           '~/styles': './src/styles',
           '~/types': './src/types',
+          '@apollo/client': './node_modules/@apollo/client',
         },
       },
     ],
